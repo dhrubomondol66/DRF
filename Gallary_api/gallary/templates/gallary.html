@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Gallery | Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --secondary: #ec4899;
+            --bg-dark: #0f172a;
+            --glass-bg: rgba(30, 41, 59, 0.7);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --text-light: #f8fafc;
+            --text-dim: #94a3b8;
+            --card-bg: rgba(15, 23, 42, 0.6);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            background-image:
+                radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.15) 0px, transparent 50%),
+                radial-gradient(at 100% 0%, rgba(236, 72, 153, 0.15) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(99, 102, 241, 0.15) 0px, transparent 50%),
+                radial-gradient(at 0% 100%, rgba(236, 72, 153, 0.15) 0px, transparent 50%);
+            min-height: 100vh;
+            color: var(--text-light);
+        }
+
+        /* Navbar */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 70px;
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--glass-border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 2rem;
+            z-index: 100;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(to right, #fff, #94a3b8);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .nav-actions button {
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            border: 1px solid var(--glass-border);
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-light);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .nav-actions button:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        /* Main Content */
+        .main-container {
+            margin-top: 70px;
+            padding: 2rem;
+            max-width: 1400px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .add-btn {
+            padding: 0.75rem 1.5rem;
+            background: var(--primary);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .add-btn:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+        }
+
+        /* Grid Layout */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            position: relative;
+            aspect-ratio: 1;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            border-color: var(--primary);
+            box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+        }
+
+        .card-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s ease;
+        }
+
+        .card:hover .card-img {
+            transform: scale(1.05);
+        }
+
+        .card-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 1.5rem;
+            background: linear-gradient(to top, rgba(0, 0, 0, 0.8), transparent);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .card:hover .card-overlay {
+            opacity: 1;
+        }
+
+        .card-title {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .card-meta {
+            font-size: 0.85rem;
+            color: var(--text-dim);
+        }
+
+        /* Loading State */
+        .loading {
+            text-align: center;
+            padding: 4rem;
+            color: var(--text-dim);
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 4rem;
+            color: var(--text-dim);
+            grid-column: 1 / -1;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(5px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: #1e293b;
+            padding: 2rem;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 500px;
+            border: 1px solid var(--glass-border);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            color: var(--text-dim);
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--text-dim);
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 0.75rem;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid var(--glass-border);
+            border-radius: 8px;
+            color: white;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 0.75rem;
+            background: var(--primary);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 1rem;
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="logo">Gallery</div>
+        <div class="nav-actions">
+            <button id="logoutBtn">Logout</button>
+        </div>
+    </nav>
+
+    <div class="main-container">
+        <!-- Albums Section -->
+        <div class="section-header">
+            <h2 class="section-title">Albums</h2>
+            <button class="add-btn" onclick="openModal('albumModal')">+ New Album</button>
+        </div>
+        <div id="albumsGrid" class="grid">
+            <div class="loading">Loading albums...</div>
+        </div>
+
+        <div style="margin: 3rem 0;"></div>
+
+        <!-- Photos Section -->
+        <div class="section-header">
+            <h2 class="section-title" id="photosTitle">Recent Photos</h2>
+            <button class="add-btn" onclick="openModal('photoModal')">+ Upload Photo</button>
+        </div>
+        <div id="photosGrid" class="grid">
+            <div class="loading">Loading photos...</div>
+        </div>
+    </div>
+
+    <!-- Create Album Modal -->
+    <div id="albumModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Create New Album</h3>
+                <button class="close-modal" onclick="closeModal('albumModal')">&times;</button>
+            </div>
+            <form id="createAlbumForm">
+                <div class="form-group">
+                    <label>Album Title</label>
+                    <input type="text" name="title" required>
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <input type="text" name="description">
+                </div>
+                <button type="submit" class="submit-btn">Create Album</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Upload Photo Modal -->
+    <div id="photoModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Upload Photo</h3>
+                <button class="close-modal" onclick="closeModal('photoModal')">&times;</button>
+            </div>
+            <form id="uploadPhotoForm">
+                <div class="form-group">
+                    <label>Photo Title</label>
+                    <input type="text" name="title" required>
+                </div>
+                <div class="form-group">
+                    <label>Select Album</label>
+                    <select name="album" id="albumSelect" required>
+                        <option value="">Choose an album...</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Select Image from PC</label>
+                    <input type="file" name="image" accept="image/*" required>
+                </div>
+                <button type="submit" class="submit-btn">Upload Photo</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Auth Check
+        const token = localStorage.getItem('accessToken');
+        if (!token) {
+            window.location.href = '/login/';
+        }
+
+        // Logout
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+            localStorage.removeItem('accessToken');
+            localStorage.removeItem('refreshToken');
+            window.location.href = '/login/';
+        });
+
+        // Fetch Data
+        async function fetchData(endpoint) {
+            try {
+                let url = `/${endpoint}`;
+                if (!url.includes('?') && !url.endsWith('/')) {
+                    url += '/';
+                }
+                const res = await fetch(url, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                if (res.status === 401) {
+                    localStorage.removeItem('accessToken');
+                    window.location.href = '/login/';
+                    return null;
+                }
+                return await res.json();
+            } catch (err) {
+                console.error(err);
+                return null;
+            }
+        }
+
+        // Render Albums
+        async function loadAlbums() {
+            const albums = await fetchData('gallary/albums');
+            const grid = document.getElementById('albumsGrid');
+            const select = document.getElementById('albumSelect');
+
+            grid.innerHTML = '';
+            select.innerHTML = '<option value="">Choose an album...</option>';
+
+            if (albums && albums.results && albums.results.length > 0) {
+                albums.results.forEach(album => {
+                    const card = document.createElement('div');
+                    card.className = 'card';
+                    card.style.cursor = 'pointer';
+                    card.onclick = () => window.location.href = `/gallary/album/${album.id}/`;
+                    card.innerHTML = `
+                        <div style="height: 100%; background: linear-gradient(45deg, #1e293b, #0f172a); display: flex; align-items: center; justify-content: center; color: #94a3b8;">
+                            <div style="text-align: center; padding: 1rem;">
+                                <div style="font-size: 3rem; margin-bottom: 0.5rem;">📁</div>
+                                <h3 class="card-title" style="color: white;">${album.title}</h3>
+                                <p class="card-meta">${album.description || 'No description'}</p>
+                            </div>
+                        </div>
+                    `;
+                    grid.appendChild(card);
+
+                    const option = document.createElement('option');
+                    option.value = album.id;
+                    option.textContent = album.title;
+                    select.appendChild(option);
+                });
+            } else {
+                grid.innerHTML = '<div class="empty-state">No albums yet. Create one to get started!</div>';
+            }
+        }
+
+        // Render Photos
+        async function loadPhotos() {
+            const photos = await fetchData('gallary/photos');
+            const grid = document.getElementById('photosGrid');
+            const titleEl = document.getElementById('photosTitle');
+
+            // Reset section title
+            titleEl.textContent = 'Recent Photos';
+
+            grid.innerHTML = '';
+
+            if (photos && photos.results && photos.results.length > 0) {
+                photos.results.forEach(photo => {
+                    const card = document.createElement('div');
+                    card.className = 'card';
+                    card.innerHTML = `
+                        <img src="${photo.image}" class="card-img" onerror="this.src='https://via.placeholder.com/400x400?text=Error+Loading+Image'">
+                        <div class="card-overlay">
+                            <h3 class="card-title" style="color: white;">${photo.title}</h3>
+                            <p class="card-meta">Album: ${photo.album}</p>
+                        </div>
+                    `;
+                    grid.appendChild(card);
+                });
+            } else {
+                grid.innerHTML = '<div class="empty-state">No photos uploaded yet.</div>';
+            }
+        }
+
+        // Modal Logic
+        window.openModal = (id) => document.getElementById(id).classList.add('active');
+        window.closeModal = (id) => document.getElementById(id).classList.remove('active');
+
+        // Form Handling
+        document.getElementById('createAlbumForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const data = Object.fromEntries(formData.entries());
+
+            try {
+                const res = await fetch('/gallary/albums/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(data)
+                });
+                if (res.ok) {
+                    closeModal('albumModal');
+                    loadAlbums();
+                    e.target.reset();
+                } else {
+                    alert('Failed to create album');
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        });
+
+        // Photo Upload with File
+        document.getElementById('uploadPhotoForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+
+            try {
+                const res = await fetch('/gallary/photos/', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: formData
+                });
+
+                if (res.ok) {
+                    closeModal('photoModal');
+                    loadPhotos();
+                    e.target.reset();
+                } else {
+                    const err = await res.json();
+                    alert('Failed to upload: ' + JSON.stringify(err));
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        });
+
+        // Initial Load
+        loadAlbums();
+        loadPhotos();
+    </script>
+</body>
+
+</html>

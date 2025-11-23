@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Album Details | Gallery</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --secondary: #ec4899;
+            --bg-dark: #0f172a;
+            --glass-bg: rgba(30, 41, 59, 0.7);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --text-light: #f8fafc;
+            --text-dim: #94a3b8;
+            --card-bg: rgba(15, 23, 42, 0.6);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            background-image:
+                radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.15) 0px, transparent 50%),
+                radial-gradient(at 100% 0%, rgba(236, 72, 153, 0.15) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(99, 102, 241, 0.15) 0px, transparent 50%),
+                radial-gradient(at 0% 100%, rgba(236, 72, 153, 0.15) 0px, transparent 50%);
+            min-height: 100vh;
+            color: var(--text-light);
+        }
+
+        /* Navbar */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 70px;
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--glass-border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 2rem;
+            z-index: 100;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(to right, #fff, #94a3b8);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            cursor: pointer;
+        }
+
+        .nav-actions button {
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            border: 1px solid var(--glass-border);
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-light);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .nav-actions button:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        /* Main Content */
+        .main-container {
+            margin-top: 40px;
+            padding: 1rem;
+            max-width: 1400px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .section-title {
+            font-size: 2rem;
+            font-weight: 600;
+        }
+
+        .album-meta {
+            color: var(--text-dim);
+            margin-top: 0.5rem;
+            font-size: 1.1rem;
+        }
+
+        .back-btn {
+            padding: 0.75rem 1.5rem;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid var(--glass-border);
+            border-radius: 10px;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .back-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        /* Grid Layout */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            position: relative;
+            aspect-ratio: 1;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            border-color: var(--primary);
+            box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+        }
+
+        .card-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s ease;
+        }
+
+        .card:hover .card-img {
+            transform: scale(1.05);
+        }
+
+        .card-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 1.5rem;
+            background: linear-gradient(to top, rgba(0, 0, 0, 0.8), transparent);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .card:hover .card-overlay {
+            opacity: 1;
+        }
+
+        .card-title {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .card-meta {
+            font-size: 0.85rem;
+            color: var(--text-dim);
+        }
+
+        /* Loading State */
+        .loading {
+            text-align: center;
+            padding: 4rem;
+            color: var(--text-dim);
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 4rem;
+            color: var(--text-dim);
+            grid-column: 1 / -1;
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="logo" onclick="window.location.href='/gallary/dashboard/'">Gallery</div>
+        <div class="nav-actions">
+            <button id="logoutBtn">Logout</button>
+        </div>
+    </nav>
+
+    <div class="main-container">
+        <!-- <div class="section-header">
+            <div>
+                <h2 class="section-title" id="albumTitle">Loading...</h2>
+                <p class="album-meta" id="albumDesc"></p>
+            </div>
+            <a href="/gallary/dashboard/" class="back-btn">← Back to Gallery</a>
+        </div> -->
+
+        <!-- box-sizing: border-box;
+        font-family: 'Outfit', sans-serif;
+        }
+
+        body {
+        background-color: var(--bg-dark);
+        background-image:
+        radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.15) 0px, transparent 50%),
+        radial-gradient(at 100% 0%, rgba(236, 72, 153, 0.15) 0px, transparent 50%),
+        radial-gradient(at 100% 100%, rgba(99, 102, 241, 0.15) 0px, transparent 50%),
+        radial-gradient(at 0% 100%, rgba(236, 72, 153, 0.15) 0px, transparent 50%);
+        min-height: 100vh;
+        color: var(--text-light);
+        }
+
+        /* Navbar */
+        .navbar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 70px;
+        background: rgba(15, 23, 42, 0.8);
+        backdrop-filter: blur(10px);
+        border-bottom: 1px solid var(--glass-border);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 2rem;
+        z-index: 100;
+        }
+
+        .logo {
+        font-size: 1.5rem;
+        font-weight: 700;
+        background: linear-gradient(to right, #fff, #94a3b8);
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+        cursor: pointer;
+        }
+
+        .nav-actions button {
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        border: 1px solid var(--glass-border);
+        background: rgba(255, 255, 255, 0.05);
+        color: var(--text-light);
+        cursor: pointer;
+        transition: all 0.3s ease;
+        }
+
+        .nav-actions button:hover {
+        background: rgba(255, 255, 255, 0.1);
+        }
+
+        /* Main Content */
+        .main-container {
+        margin-top: 70px;
+        padding: 2rem;
+        max-width: 1400px;
+        margin-left: auto;
+        margin-right: auto;
+        }
+
+        .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+        }
+
+        .section-title {
+        font-size: 2rem;
+        font-weight: 600;
+        }
+
+        .album-meta {
+        color: var(--text-dim);
+        margin-top: 0.5rem;
+        font-size: 1.1rem;
+        }
+
+        .back-btn {
+        padding: 0.75rem 1.5rem;
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid var(--glass-border);
+        border-radius: 10px;
+        color: white;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        }
+
+        .back-btn:hover {
+        background: rgba(255, 255, 255, 0.2);
+        }
+
+        /* Grid Layout */
+        .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 1.5rem;
+        }
+
+        .card {
+        background: var(--card-bg);
+        border: 1px solid var(--glass-border);
+        border-radius: 16px;
+        overflow: hidden;
+        transition: all 0.3s ease;
+        position: relative;
+        aspect-ratio: 1;
+        }
+
+        .card:hover {
+        transform: translateY(-5px);
+        border-color: var(--primary);
+        box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+        }
+
+        .card-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.5s ease;
+        }
+
+        .card:hover .card-img {
+        transform: scale(1.05);
+        }
+
+        .card-overlay {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        padding: 1.5rem;
+        background: linear-gradient(to top, rgba(0, 0, 0, 0.8), transparent);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        }
+
+        .card:hover .card-overlay {
+        opacity: 1;
+        }
+
+        .card-title {
+        font-weight: 600;
+        margin-bottom: 0.25rem;
+        }
+
+        .card-meta {
+        font-size: 0.85rem;
+        color: var(--text-dim);
+        }
+
+        /* Loading State */
+        .loading {
+        text-align: center;
+        padding: 4rem;
+        color: var(--text-dim);
+        }
+
+        /* Empty State */
+        .empty-state {
+        text-align: center;
+        padding: 4rem;
+        color: var(--text-dim);
+        grid-column: 1 / -1;
+        } -->
+        </style>
+        </head>
+
+        <body>
+            <nav class="navbar">
+                <div class="logo" onclick="window.location.href='/gallary/dashboard/'">Gallery</div>
+                <div class="nav-actions">
+                    <button id="logoutBtn">Logout</button>
+                </div>
+            </nav>
+
+            <div class="main-container">
+                <div class="section-header">
+                    <div>
+                        <h2 class="section-title" id="albumTitle">Loading...</h2>
+                        <p class="album-meta" id="albumDesc"></p>
+                    </div>
+                    <a href="/gallary/dashboard/" class="back-btn">← Back to Gallery</a>
+                </div>
+
+                <div id="photosGrid" class="grid">
+                    <div class="loading">Loading photos...</div>
+                </div>
+            </div>
+
+            <script>
+                // Auth Check
+                const token = localStorage.getItem('accessToken');
+                if (!token) {
+                    window.location.href = '/login/';
+                }
+
+                // Logout
+                document.getElementById('logoutBtn').addEventListener('click', () => {
+                    localStorage.removeItem('accessToken');
+                    localStorage.removeItem('refreshToken');
+                    window.location.href = '/login/';
+                });
+
+                // Get Album ID from URL
+                const pathParts = window.location.pathname.split('/');
+                const albumId = pathParts[pathParts.length - 2]; // Assuming /gallary/album/<id>/
+
+                // Fetch Data
+                async function fetchData(endpoint) {
+                    try {
+                        let url = `/${endpoint}`;
+                        // Only append slash if no query params and not already ending in slash
+                        if (!url.includes('?') && !url.endsWith('/')) {
+                            url += '/';
+                        }
+
+                        const res = await fetch(url, {
+                            headers: {
+                                'Authorization': `Bearer ${token}`
+                            }
+                        });
+                        if (res.status === 401) {
+                            localStorage.removeItem('accessToken');
+                            window.location.href = '/login/';
+                            return null;
+                        }
+                        return await res.json();
+                    } catch (err) {
+                        console.error(err);
+                        return null;
+                    }
+                }
+
+                async function loadAlbumDetails() {
+                    // Fetch Album Details
+                    const album = await fetchData(`gallary/albums/${albumId}`);
+                    if (album) {
+                        document.getElementById('albumTitle').textContent = album.title;
+                        document.getElementById('albumDesc').textContent = album.description || 'No description';
+                    }
+
+                    // Fetch Photos
+                    const photos = await fetchData(`gallary/photos/?album=${albumId}`);
+                    const grid = document.getElementById('photosGrid');
+
+                    grid.innerHTML = '';
+
+                    if (photos && photos.results && photos.results.length > 0) {
+                        photos.results.forEach(photo => {
+                            const card = document.createElement('div');
+                            card.className = 'card';
+                            card.innerHTML = `
+                        <img src="${photo.image}" class="card-img" onerror="this.src='https://via.placeholder.com/400x400?text=Error+Loading+Image'">
+                        <div class="card-overlay">
+                            <h3 class="card-title" style="color: white;">${photo.title}</h3>
+                            <p class="card-meta">Album: ${photo.album}</p>
+                        </div>
+                    `;
+                            grid.appendChild(card);
+                        });
+                    } else {
+                        grid.innerHTML = '<div class="empty-state">No photos in this album yet.</div>';
+                    }
+                }
+
+                loadAlbumDetails();
+            </script>
+        </body>
+
+</html>
